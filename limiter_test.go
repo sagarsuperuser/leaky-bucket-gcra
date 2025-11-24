@@ -25,6 +25,20 @@ func newTestLimiter(t *testing.T) *Limiter {
 	return NewLimiter(client)
 }
 
+func newBenchLimiter(b *testing.B) *Limiter {
+	b.Helper()
+
+	client, err := NewRadixClient("tcp", "127.0.0.1:6379", 4, false)
+	if err != nil {
+		b.Fatalf("redis not available: %v", err)
+	}
+	if err := client.DoCmd(nil, "PING", ""); err != nil {
+		b.Fatalf("redis ping failed: %v", err)
+	}
+	b.Cleanup(func() { client.Close() })
+	return NewLimiter(client)
+}
+
 func resetKey(t *testing.T, l *Limiter, key string) {
 	t.Helper()
 	if err := l.Reset(key); err != nil {
@@ -330,4 +344,29 @@ func TestRemaining(t *testing.T) {
 			}
 		})
 	}
+}
+
+func BenchmarkAllowN(b *testing.B) {
+	limiter := newBenchLimiter(b)
+	limit := PerSecond(1e6, 1e6) // 1 million req/sec, burst 1 million
+	key := "bench:allown"
+
+	if err := limiter.Reset(key); err != nil {
+		b.Fatalf("reset key: %v", err)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			res, err := limiter.AllowN(key, limit, 1)
+			if err != nil {
+				b.Fatalf("AllowN: %v", err)
+			}
+			if res.Allowed == 0 {
+				b.Fatalf("expected allowed")
+			}
+		}
+	})
 }

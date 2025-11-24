@@ -1,6 +1,8 @@
 # Leaky Bucket GCRA
 
-Redis-backed rate limiting using the Generic Cell Rate Algorithm (a leaky-bucket style limiter). The limiter uses a single Lua script executed via [radix](https://github.com/mediocregopher/radix) for fast, consistent limits across distributed processes.
+Redis-backed rate limiting using the Generic Cell Rate Algorithm(a leaky-bucket style limiter).
+
+The limiter uses a single Lua script executed via [radix](https://github.com/mediocregopher/radix) for fast, consistent limits across distributed processes.
 
 ## Requirements
 
