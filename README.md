@@ -8,6 +8,7 @@ The limiter uses a single Lua script executed via [radix](https://github.com/med
 
 - Go 1.22+
 - Redis reachable at `127.0.0.1:6379` (see test/demo instructions below)
+- The code requires Redis version 3.2 or newer since it relies on replicate_commands feature.
 
 ## Install
 
@@ -63,3 +64,12 @@ Tests are integration-style and exercise Redis directly. Start Redis locally (fo
 ```bash
 go test ./...
 ```
+## Inspiration
+
+This code was inspired by Brandur Leach and his work on throttled (https://github.com/throttled/throttled) and the blog post https://brandur.org/rate-limiting.
+
+## References
+
+- https://pkg.go.dev/golang.org/x/time/rate
+- https://github.com/rwz/redis-gcra
+
