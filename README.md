@@ -4,6 +4,10 @@ Redis-backed rate limiting using the Generic Cell Rate Algorithm(a leaky-bucket 
 
 The limiter uses a single Lua script executed via [radix](https://github.com/mediocregopher/radix) for fast, consistent limits across distributed processes.
 
+## Comparison
+
+This GCRA-based limiter behaves similarly to the token bucket implementation in [`golang.org/x/time/rate`](https://pkg.go.dev/golang.org/x/time/rate).
+Some of the unit tests in this repository closely mirror those from the Go rate package.
 ## Requirements
 
 - Go 1.22+
@@ -72,4 +76,3 @@ This code was inspired by Brandur Leach and his work on throttled (https://githu
 
 - https://pkg.go.dev/golang.org/x/time/rate
 - https://github.com/rwz/redis-gcra
-
