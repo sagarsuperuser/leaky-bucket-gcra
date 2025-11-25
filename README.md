@@ -67,13 +67,18 @@ go run ./cmd/demo
 ```
 
 ## Testing
-Tests are integration-style and exercise Redis directly. 
-Start Redis locally (for example with Docker: docker run -p 6379:6379 redis:7-alpine), then run:
+
+Run examples (no Redis needed):
 
 ```bash
 go test ./...
 ```
 
+Run integration tests with Redis (e.g., `docker run -p 6379:6379 redis:7-alpine`):
+
+```bash
+go test -tags=integration ./...
+```
 ## Inspiration
 
 This code was inspired by Brandur Leach and his work on throttled [throttled](https://github.com/throttled/throttled) and the [blog post](https://brandur.org/rate-limiting).
