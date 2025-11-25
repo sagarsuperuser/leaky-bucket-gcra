@@ -112,9 +112,6 @@ func (l Limiter) Peek(key string) (*time.Duration, error) {
 
 // AllowN reports whether n events may happen at time now (cost = n).
 func (l Limiter) AllowN(key string, limit Limit, n int64) (*RateLimitResult, error) {
-	if n <= 0 {
-		return nil, fmt.Errorf("invalid cost: %d; must be > 0", n)
-	}
 	if limit.Burst < 0 {
 		return nil, fmt.Errorf("invalid Limit: %#v,  burst must be greater than zero", limit)
 	}
