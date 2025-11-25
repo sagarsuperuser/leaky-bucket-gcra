@@ -26,6 +26,9 @@ type RadixClient struct {
 }
 
 // NewRadixClient builds a radix-backed Client with the given pool size and options.
+// It's implementation executes Lua script that uses redis.replicate_commands,
+// so Redis 3.2+ is required. When implicitPipelining is true PipeDo executes
+// commands sequentially; when false PipeDo issues a single pipeline round-trip.
 func NewRadixClient(network, addr string, size int, implicitPipelining bool, opts ...radix.PoolOpt) (*RadixClient, error) {
 	pool, err := radix.NewPool(network, addr, size, opts...)
 	if err != nil {

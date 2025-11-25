@@ -1,18 +1,23 @@
 # Leaky Bucket GCRA
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/sagarsuperuser/leaky-bucket-gcra.svg)](https://pkg.go.dev/github.com/sagarsuperuser/leaky-bucket-gcra)
+
 Redis-backed rate limiting using the Generic Cell Rate Algorithm(a leaky-bucket style limiter).
 
 The limiter uses a single Lua script executed via [radix](https://github.com/mediocregopher/radix) for fast, consistent limits across distributed processes.
 
 ## Comparison
 
-This GCRA-based limiter behaves similarly to the token bucket implementation in [`golang.org/x/time/rate`](https://pkg.go.dev/golang.org/x/time/rate).
-Some of the unit tests in this repository closely mirror those from the Go rate package.
+This GCRA-based limiter behaves similarly to the token bucket implementation in [`golang.org/x/time/rate`](https://pkg.go.dev/golang.org/x/time/rate). Some of the unit tests in this repository closely mirror those from the Go rate package.
 ## Requirements
 
 - Go 1.22+
 - Redis reachable at `127.0.0.1:6379` (see test/demo instructions below)
 - The code requires Redis version 3.2 or newer since it relies on replicate_commands feature.
+
+## Go package docs
+
+Browse the API docs on pkg.go.dev: https://pkg.go.dev/github.com/sagarsuperuser/leaky-bucket-gcra
 
 ## Install
 

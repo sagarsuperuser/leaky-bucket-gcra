@@ -8,11 +8,14 @@ import (
 
 const redisPrefix = ""
 
-// Limit describes the rate configuration.
+// Limit describes the rate configuration. All fields must be positive; invalid
+// values are rejected by AllowN. Period defines the time window that Rate
+// applies to (for example, 10 requests per 1s). Burst caps how many requests
+// can be spent at once; cost asked must not exceed Burst.
 type Limit struct {
-	Rate   int64
-	Burst  int64
-	Period time.Duration
+	Rate   int64         // allowed requests per period; must be > 0
+	Burst  int64         // maximum tokens allowed at once; must be >= 0
+	Period time.Duration // time window in which the rate no. of requests are allowed; must be > 0
 }
 
 func (l Limit) String() string {
@@ -68,10 +71,12 @@ type RateLimitResult struct {
 	Remaining int64
 
 	// RetryAfter is how long to wait before a subsequent request may be allowed.
-	// It is nil when the current request is allowed or a retry hint is not applicable.
+	// It is nil when the current request is allowed or a retry hint is not applicable
+	// (for example when cost > burst).
 	RetryAfter *time.Duration
 
 	// ResetAfter is the time until the limiter returns to a fully replenished state.
+	// After this duration, the next request can ask for the full Burst again.
 	ResetAfter *time.Duration
 }
 
@@ -88,6 +93,21 @@ func NewLimiter(rdb Client) *Limiter {
 // Allow is a shortcut for AllowN with cost 1.
 func (l Limiter) Allow(key string, limit Limit) (*RateLimitResult, error) {
 	return l.AllowN(key, limit, 1)
+}
+
+// Peek fetches the stored limiter state for a key without mutating it.
+// It returns the absolute theoretical arrival time (TAT) as a duration offset
+// from the internal epoch used by the limiter. A nil result indicates no state exists.
+func (l Limiter) Peek(key string) (*time.Duration, error) {
+	var raw interface{}
+	if err := l.rdb.DoCmd(&raw, "GET", redisPrefix+key); err != nil {
+		return nil, err
+	}
+	dur, err := parseDurationSeconds(raw)
+	if err != nil {
+		return nil, err
+	}
+	return dur, nil
 }
 
 // AllowN reports whether n events may happen at time now (cost = n).
@@ -114,7 +134,7 @@ func (l Limiter) AllowN(key string, limit Limit, n int64) (*RateLimitResult, err
 	return res, nil
 }
 
-// Reset removes any tracking for this key.
+// Reset removes any tracking for this key by deleting the Redis entry.
 func (l Limiter) Reset(key string) error {
 	return l.rdb.DoCmd(nil, "DEL", redisPrefix+key)
 }

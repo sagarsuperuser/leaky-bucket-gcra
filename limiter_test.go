@@ -288,6 +288,26 @@ func TestRecoversAfterTime(t *testing.T) {
 	}
 }
 
+func TestPeekReturnsState(t *testing.T) {
+	limiter := newTestLimiter(t)
+	key := "test:peek"
+	resetKey(t, limiter, key)
+
+	limit := PerSecond(2, 2) // 2 req/sec, burst 2
+	_, err := limiter.Allow(key, limit)
+	require.NoError(t, err)
+
+	state, err := limiter.Peek(key)
+	require.NoError(t, err)
+	require.NotNil(t, state)
+	require.Greater(t, *state, time.Duration(0))
+
+	require.NoError(t, limiter.Reset(key))
+	state, err = limiter.Peek(key)
+	require.NoError(t, err)
+	require.Nil(t, state)
+}
+
 func TestCostBiggerThanRemaining(t *testing.T) {
 	limiter := newTestLimiter(t)
 	limit := PerSecond(10, 10) // 10 req/sec, burst 10
