@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-// ExampleLimiter_Allow shows basic usage of the Limiter's Allow method.
+// Allow shows basic usage of the Limiter's Allow method.
 func ExampleLimiter_Allow() {
-	clock := newTestTime(time.Unix(0, 0))
-	mock := newMockClient(clock)
+	clock := NewTestTime(time.Unix(0, 0))
+	mock := NewMockClient(clock)
 	limiter := NewLimiter(mock)
 	limit := PerSecond(2, 2) // 2 req/sec, burst 2
 
@@ -34,10 +34,10 @@ func ExampleLimiter_Allow() {
 	// after wait: allowed=1 remaining=0 retry_after=none reset_after=1.0s
 }
 
-// ExampleLimiter_AllowN shows usage of the Limiter's AllowN method.
+// AllowN shows usage of the Limiter's AllowN method.
 func ExampleLimiter_AllowN() {
-	clock := newTestTime(time.Unix(0, 0))
-	mock := newMockClient(clock)
+	clock := NewTestTime(time.Unix(0, 0))
+	mock := NewMockClient(clock)
 	limiter := NewLimiter(mock)
 	limit := PerMinute(60, 300) // 60 req/min, burst 300
 
@@ -57,10 +57,10 @@ func ExampleLimiter_AllowN() {
 	// second: allowed=300 remaining=0 retry_after=none reset_after=300.0s
 }
 
-// ExampleLimiter_Reset shows removing rate limit state for a key.
+// Reset shows removing rate limit state for a key.
 func ExampleLimiter_Reset() {
-	clock := newTestTime(time.Unix(0, 0))
-	mock := newMockClient(clock)
+	clock := NewTestTime(time.Unix(0, 0))
+	mock := NewMockClient(clock)
 	limiter := NewLimiter(mock)
 	limit := PerSecond(1, 1) // 1 req/sec, burst 1
 
