@@ -17,7 +17,7 @@ This GCRA-based limiter behaves similarly to the token bucket implementation in 
 
 ## Go package docs
 
-Browse the API docs on pkg.go.dev: https://pkg.go.dev/github.com/sagarsuperuser/leaky-bucket-gcra
+Browse the API docs on pkg.go.dev: [documentation](https://pkg.go.dev/github.com/sagarsuperuser/leaky-bucket-gcra)
 
 ## Install
 
@@ -75,7 +75,7 @@ go test ./...
 ```
 ## Inspiration
 
-This code was inspired by Brandur Leach and his work on throttled (https://github.com/throttled/throttled) and the blog post https://brandur.org/rate-limiting.
+This code was inspired by Brandur Leach and his work on throttled [throttled](https://github.com/throttled/throttled) and the [blog post](https://brandur.org/rate-limiting).
 
 ## References
 
