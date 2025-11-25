@@ -10,15 +10,15 @@ import (
 // example is just to show the behaviour, integrated with fake clock and client
 // ; check cmd/ for real Redis usage.
 func ExampleLimiter_Allow() {
-	clock := newTestTime(time.Unix(0, 0))
-	mock := newMockClient(clock)
+	clock := NewTestTime(time.Unix(0, 0))
+	mock := NewMockClient(clock)
 	limiter := gcra.NewLimiter(mock)
 	limit := gcra.PerSecond(2, 2) // 2 req/sec, burst 2
 
 	res1, _ := limiter.Allow("user:42", limit)
 	res2, _ := limiter.Allow("user:42", limit)
 	res3, _ := limiter.Allow("user:42", limit)
-	clock.advance(500 * time.Millisecond) // wait long enough for one token to replenish
+	clock.Advance(500 * time.Millisecond) // wait long enough for one token to replenish
 	res4, _ := limiter.Allow("user:42", limit)
 
 	fmt.Printf("first: allowed=%d remaining=%d retry_after=%s reset_after=%s\n",
@@ -40,14 +40,14 @@ func ExampleLimiter_Allow() {
 // example is just to show the behaviour, integrated with fake clock and client
 // ; check cmd/ for real Redis usage.
 func ExampleLimiter_AllowN() {
-	clock := newTestTime(time.Unix(0, 0))
-	mock := newMockClient(clock)
+	clock := NewTestTime(time.Unix(0, 0))
+	mock := NewMockClient(clock)
 	limiter := gcra.NewLimiter(mock)
 	limit := gcra.PerMinute(60, 300) // 60 req/min, burst 300
 
 	res, _ := limiter.AllowN("account:99", limit, 3)
 
-	clock.advance(3 * time.Second) // advance enough to replenish burst again
+	clock.Advance(3 * time.Second) // advance enough to replenish burst again
 
 	res1, _ := limiter.AllowN("account:99", limit, 300)
 
@@ -64,8 +64,8 @@ func ExampleLimiter_AllowN() {
 func ExampleLimiter_Reset() {
 	// example is just to show the behaviour, integrated with fake clock and client
 	// ; check cmd/ for real Redis usage.
-	clock := newTestTime(time.Unix(0, 0))
-	mock := newMockClient(clock)
+	clock := NewTestTime(time.Unix(0, 0))
+	mock := NewMockClient(clock)
 	limiter := gcra.NewLimiter(mock)
 	limit := gcra.PerSecond(1, 1) // 1 req/sec, burst 1
 

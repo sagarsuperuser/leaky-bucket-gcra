@@ -63,7 +63,7 @@ func (tt *testTime) since(t time.Time) time.Duration {
 }
 
 // advance advances the fake time.
-func (tt *testTime) advance(dur time.Duration) {
+func (tt *testTime) Advance(dur time.Duration) {
 	tt.mu.Lock()
 	defer tt.mu.Unlock()
 	tt.advanceUnlocked(dur)
@@ -101,12 +101,12 @@ func (tt *testTime) advanceToTimer() {
 }
 
 // newTestTime builds a fake clock starting at start.
-func newTestTime(start time.Time) *testTime {
+func NewTestTime(start time.Time) *testTime {
 	return &testTime{cur: start, start: start}
 }
 
 // newMockClient implements the Client interface entirely in-memory for examples.
-func newMockClient(clock *testTime) *mockClient {
+func NewMockClient(clock *testTime) *mockClient {
 	return &mockClient{
 		store: make(map[string]float64),
 		clock: clock,
