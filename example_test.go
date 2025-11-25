@@ -5,13 +5,14 @@ import (
 	"time"
 
 	gcra "github.com/sagarsuperuser/leaky-bucket-gcra"
+	testmock "github.com/sagarsuperuser/leaky-bucket-gcra/test/mock"
 )
 
 // example is just to show the behaviour, integrated with fake clock and client
 // ; check cmd/ for real Redis usage.
 func ExampleLimiter_Allow() {
-	clock := NewTestTime(time.Unix(0, 0))
-	mock := NewMockClient(clock)
+	clock := testmock.NewTestTime(time.Unix(0, 0))
+	mock := testmock.NewMockClient(clock)
 	limiter := gcra.NewLimiter(mock)
 	limit := gcra.PerSecond(2, 2) // 2 req/sec, burst 2
 
@@ -40,8 +41,8 @@ func ExampleLimiter_Allow() {
 // example is just to show the behaviour, integrated with fake clock and client
 // ; check cmd/ for real Redis usage.
 func ExampleLimiter_AllowN() {
-	clock := NewTestTime(time.Unix(0, 0))
-	mock := NewMockClient(clock)
+	clock := testmock.NewTestTime(time.Unix(0, 0))
+	mock := testmock.NewMockClient(clock)
 	limiter := gcra.NewLimiter(mock)
 	limit := gcra.PerMinute(60, 300) // 60 req/min, burst 300
 
@@ -64,8 +65,8 @@ func ExampleLimiter_AllowN() {
 func ExampleLimiter_Reset() {
 	// example is just to show the behaviour, integrated with fake clock and client
 	// ; check cmd/ for real Redis usage.
-	clock := NewTestTime(time.Unix(0, 0))
-	mock := NewMockClient(clock)
+	clock := testmock.NewTestTime(time.Unix(0, 0))
+	mock := testmock.NewMockClient(clock)
 	limiter := gcra.NewLimiter(mock)
 	limit := gcra.PerSecond(1, 1) // 1 req/sec, burst 1
 

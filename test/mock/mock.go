@@ -1,4 +1,4 @@
-package leakybucketgcra_test
+package mock
 
 import (
 	"fmt"
@@ -26,43 +26,21 @@ type testTimer struct {
 	ch   chan<- time.Time
 }
 
-// now returns the current fake time.
-func (tt *testTime) now() time.Time {
+// Now returns the current fake time.
+func (tt *testTime) Now() time.Time {
 	tt.mu.Lock()
 	defer tt.mu.Unlock()
 	return tt.cur
 }
 
 // Unix returns seconds elapsed since the fake clock start.
-func (tt *testTime) unix() float64 {
+func (tt *testTime) Unix() float64 {
 	tt.mu.Lock()
 	defer tt.mu.Unlock()
 	return tt.cur.Sub(tt.start).Seconds()
 }
 
-// newTimer creates a fake timer. It returns the channel,
-// a function to stop the timer (which we don't care about),
-// and a function to advance to the next timer.
-func (tt *testTime) newTimer(dur time.Duration) (<-chan time.Time, func() bool, func()) {
-	tt.mu.Lock()
-	defer tt.mu.Unlock()
-	ch := make(chan time.Time, 1)
-	timer := testTimer{
-		when: tt.cur.Add(dur),
-		ch:   ch,
-	}
-	tt.timers = append(tt.timers, timer)
-	return ch, func() bool { return true }, tt.advanceToTimer
-}
-
-// since returns the fake time since the given time.
-func (tt *testTime) since(t time.Time) time.Duration {
-	tt.mu.Lock()
-	defer tt.mu.Unlock()
-	return tt.cur.Sub(t)
-}
-
-// advance advances the fake time.
+// Advance advances the fake time.
 func (tt *testTime) Advance(dur time.Duration) {
 	tt.mu.Lock()
 	defer tt.mu.Unlock()
@@ -84,6 +62,20 @@ func (tt *testTime) advanceUnlocked(dur time.Duration) {
 	}
 }
 
+// NewTimer creates a fake timer. It returns the channel, a stop func, and
+// a function to advance to the next timer.
+func (tt *testTime) NewTimer(dur time.Duration) (<-chan time.Time, func() bool, func()) {
+	tt.mu.Lock()
+	defer tt.mu.Unlock()
+	ch := make(chan time.Time, 1)
+	timer := testTimer{
+		when: tt.cur.Add(dur),
+		ch:   ch,
+	}
+	tt.timers = append(tt.timers, timer)
+	return ch, func() bool { return true }, tt.advanceToTimer
+}
+
 // advanceToTimer advances the time to the next timer.
 func (tt *testTime) advanceToTimer() {
 	tt.mu.Lock()
@@ -100,12 +92,12 @@ func (tt *testTime) advanceToTimer() {
 	tt.advanceUnlocked(when.Sub(tt.cur))
 }
 
-// newTestTime builds a fake clock starting at start.
+// NewTestTime builds a fake clock starting at start.
 func NewTestTime(start time.Time) *testTime {
 	return &testTime{cur: start, start: start}
 }
 
-// newMockClient implements the Client interface entirely in-memory for examples.
+// NewMockClient implements the Client interface entirely in-memory for examples.
 func NewMockClient(clock *testTime) *mockClient {
 	return &mockClient{
 		store: make(map[string]float64),
@@ -190,7 +182,7 @@ func (m *mockClient) eval(key string, args ...interface{}) ([]interface{}, error
 	emissionInterval := period / rate
 	increment := emissionInterval * cost
 	burstOffset := emissionInterval * burst
-	now := m.clock.unix()
+	now := m.clock.Unix()
 
 	tat := now
 	if prev, ok := m.store[key]; ok {
