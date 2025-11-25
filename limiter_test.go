@@ -1,7 +1,4 @@
-//go:build integration
-// +build integration
-
-package leakybucketgcra
+package leakybucketgcra_test
 
 import (
 	"fmt"
@@ -10,14 +7,15 @@ import (
 	"testing"
 	"time"
 
+	gcra "github.com/sagarsuperuser/leaky-bucket-gcra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func newTestLimiter(t *testing.T) *Limiter {
+func newTestLimiter(t *testing.T) *gcra.Limiter {
 	t.Helper()
 
-	client, err := NewRadixClient("tcp", "127.0.0.1:6379", 4, false)
+	client, err := gcra.NewRadixClient("tcp", "127.0.0.1:6379", 4, false)
 	if err != nil {
 		t.Fatalf("redis not available: %v", err)
 	}
@@ -25,13 +23,13 @@ func newTestLimiter(t *testing.T) *Limiter {
 		t.Fatalf("redis ping failed: %v", err)
 	}
 	t.Cleanup(func() { client.Close() })
-	return NewLimiter(client)
+	return gcra.NewLimiter(client)
 }
 
-func newBenchLimiter(b *testing.B) *Limiter {
+func newBenchLimiter(b *testing.B) *gcra.Limiter {
 	b.Helper()
 
-	client, err := NewRadixClient("tcp", "127.0.0.1:6379", 4, false)
+	client, err := gcra.NewRadixClient("tcp", "127.0.0.1:6379", 4, false)
 	if err != nil {
 		b.Fatalf("redis not available: %v", err)
 	}
@@ -39,17 +37,17 @@ func newBenchLimiter(b *testing.B) *Limiter {
 		b.Fatalf("redis ping failed: %v", err)
 	}
 	b.Cleanup(func() { client.Close() })
-	return NewLimiter(client)
+	return gcra.NewLimiter(client)
 }
 
-func resetKey(t *testing.T, l *Limiter, key string) {
+func resetKey(t *testing.T, l *gcra.Limiter, key string) {
 	t.Helper()
 	if err := l.Reset(key); err != nil {
 		t.Fatalf("reset key: %v", err)
 	}
 }
 
-func call(t *testing.T, l *Limiter, key string, limit Limit, cost int64) *RateLimitResult {
+func call(t *testing.T, l *gcra.Limiter, key string, limit gcra.Limit, cost int64) *gcra.RateLimitResult {
 	t.Helper()
 	res, err := l.AllowN(key, limit, cost)
 	if err != nil {
@@ -61,7 +59,7 @@ func call(t *testing.T, l *Limiter, key string, limit Limit, cost int64) *RateLi
 // Test zero burst, should not allow any requests.
 func TestZeroBurstAndRate(t *testing.T) {
 	limiter := newTestLimiter(t)
-	limit := Limit{Burst: 0, Rate: 1, Period: time.Second} // 1 req/sec, burst 0
+	limit := gcra.Limit{Burst: 0, Rate: 1, Period: time.Second} // 1 req/sec, burst 0
 	key := "test:zero"
 	resetKey(t, limiter, key)
 
@@ -78,7 +76,7 @@ func TestZeroBurstAndRate(t *testing.T) {
 // Test cost bigger than burst
 func TestCostBiggerThanBurst(t *testing.T) {
 	limiter := newTestLimiter(t)
-	limit := Limit{Burst: 5, Rate: 1, Period: time.Second} // 1 req/sec, burst 5
+	limit := gcra.Limit{Burst: 5, Rate: 1, Period: time.Second} // 1 req/sec, burst 5
 	key := "test:costbigger"
 	resetKey(t, limiter, key)
 
@@ -110,7 +108,7 @@ func TestLongRunningQPS(t *testing.T) {
 	)
 
 	limiter := newTestLimiter(t)
-	limit := PerSecond(rate, burst) // 100 req/sec, burst 100
+	limit := gcra.PerSecond(rate, burst) // 100 req/sec, burst 100
 	key := "test:longqps"
 	resetKey(t, limiter, key)
 
@@ -136,7 +134,7 @@ func TestLongRunningQPS(t *testing.T) {
 	}
 
 	// We should get at least 99% of the ideal number of requests.
-	if want := int32(0.999 * ideal); numOK < want {
+	if want := int32(0.99 * ideal); numOK < want {
 		t.Errorf("numOK = %d, want >= %d (ideal %f)", numOK, want, ideal)
 	}
 }
@@ -155,7 +153,7 @@ func TestSimultaneousRequests(t *testing.T) {
 
 	limiter := newTestLimiter(t)
 	// Very slow replenishing bucket.
-	limit := PerSecond(rate, burst) // 1 req/sec, burst 5
+	limit := gcra.PerSecond(rate, burst) // 1 req/sec, burst 5
 	key := "test:simulreqs"
 	resetKey(t, limiter, key)
 
@@ -181,7 +179,7 @@ func TestSimultaneousRequests(t *testing.T) {
 
 func TestLimitCalculatesRateLimitResult(t *testing.T) {
 	limiter := newTestLimiter(t)
-	limit := PerMinute(60, 300) // 60 req/min, burst 300
+	limit := gcra.PerMinute(60, 300) // 60 req/min, burst 300
 	key := "test:calc"
 	resetKey(t, limiter, key)
 
@@ -203,7 +201,7 @@ func TestLimitCalculatesRateLimitResult(t *testing.T) {
 
 func TestLimitsDifferentKeysIndependently(t *testing.T) {
 	limiter := newTestLimiter(t)
-	limit := PerMinute(60, 300) // 60 req/min, burst 300
+	limit := gcra.PerMinute(60, 300) // 60 req/min, burst 300
 
 	resetKey(t, limiter, "test:indep1")
 	for i := 0; i < 100; i++ {
@@ -226,7 +224,7 @@ func TestLimitsDifferentKeysIndependently(t *testing.T) {
 
 func TestNonUnitCost(t *testing.T) {
 	limiter := newTestLimiter(t)
-	limit := PerMinute(100, 1000) // 100 req/min, burst 1000 (600 ms per token refill)
+	limit := gcra.PerMinute(100, 1000) // 100 req/min, burst 1000 (600 ms per token refill)
 	key := "test:remaining"
 	resetKey(t, limiter, key)
 
@@ -245,7 +243,7 @@ func TestNonUnitCost(t *testing.T) {
 
 func TestLimitsAfterDepleted(t *testing.T) {
 	limiter := newTestLimiter(t)
-	limit := PerSecond(10, 10) // 10 req/sec, burst 10
+	limit := gcra.PerSecond(10, 10) // 10 req/sec, burst 10
 	key := "test:depleted"
 	resetKey(t, limiter, key)
 
@@ -271,7 +269,7 @@ func TestLimitsAfterDepleted(t *testing.T) {
 
 func TestRecoversAfterTime(t *testing.T) {
 	limiter := newTestLimiter(t)
-	limit := PerSecond(10, 10) // 10 req/sec, burst 10
+	limit := gcra.PerSecond(10, 10) // 10 req/sec, burst 10
 	key := "test:recover"
 	resetKey(t, limiter, key)
 
@@ -296,7 +294,7 @@ func TestPeekReturnsState(t *testing.T) {
 	key := "test:peek"
 	resetKey(t, limiter, key)
 
-	limit := PerSecond(2, 2) // 2 req/sec, burst 2
+	limit := gcra.PerSecond(2, 2) // 2 req/sec, burst 2
 	_, err := limiter.Allow(key, limit)
 	require.NoError(t, err)
 
@@ -313,7 +311,7 @@ func TestPeekReturnsState(t *testing.T) {
 
 func TestCostBiggerThanRemaining(t *testing.T) {
 	limiter := newTestLimiter(t)
-	limit := PerSecond(10, 10) // 10 req/sec, burst 10
+	limit := gcra.PerSecond(10, 10) // 10 req/sec, burst 10
 	key := "test:remaining"
 	resetKey(t, limiter, key)
 
@@ -356,9 +354,9 @@ func TestRemaining(t *testing.T) {
 			limiter := newTestLimiter(t)
 			key := fmt.Sprintf("test:case:%d", i+1)
 			resetKey(t, limiter, key)
-			limit := Limit{Burst: tc.burst, Rate: tc.rate, Period: time.Duration(tc.period * float64(time.Second))}
+			limit := gcra.Limit{Burst: tc.burst, Rate: tc.rate, Period: time.Duration(tc.period * float64(time.Second))}
 
-			var res *RateLimitResult
+			var res *gcra.RateLimitResult
 			for j := 0; j < tc.repeat; j++ {
 				res = call(t, limiter, key, limit, tc.cost)
 			}
@@ -371,7 +369,7 @@ func TestRemaining(t *testing.T) {
 
 func BenchmarkAllowN(b *testing.B) {
 	limiter := newBenchLimiter(b)
-	limit := PerSecond(1e6, 1e6) // 1 million req/sec, burst 1 million
+	limit := gcra.PerSecond(1e6, 1e6) // 1 million req/sec, burst 1 million
 	key := "bench:allown"
 
 	if err := limiter.Reset(key); err != nil {

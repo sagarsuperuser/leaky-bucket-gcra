@@ -1,18 +1,19 @@
-package leakybucketgcra
+package leakybucketgcra_test
 
 import (
 	"fmt"
 	"time"
+
+	gcra "github.com/sagarsuperuser/leaky-bucket-gcra"
 )
 
-// Allow shows basic usage of the Limiter's Allow method.
 // example is just to show the behaviour, integrated with fake clock and client
 // ; check cmd/ for real Redis usage.
 func ExampleLimiter_Allow() {
 	clock := newTestTime(time.Unix(0, 0))
 	mock := newMockClient(clock)
-	limiter := NewLimiter(mock)
-	limit := PerSecond(2, 2) // 2 req/sec, burst 2
+	limiter := gcra.NewLimiter(mock)
+	limit := gcra.PerSecond(2, 2) // 2 req/sec, burst 2
 
 	res1, _ := limiter.Allow("user:42", limit)
 	res2, _ := limiter.Allow("user:42", limit)
@@ -36,14 +37,13 @@ func ExampleLimiter_Allow() {
 	// after wait: allowed=1 remaining=0 retry_after=none reset_after=1.0s
 }
 
-// AllowN shows usage of the Limiter's AllowN method.
 // example is just to show the behaviour, integrated with fake clock and client
-// check cmd/ for real Redis usage.
+// ; check cmd/ for real Redis usage.
 func ExampleLimiter_AllowN() {
 	clock := newTestTime(time.Unix(0, 0))
 	mock := newMockClient(clock)
-	limiter := NewLimiter(mock)
-	limit := PerMinute(60, 300) // 60 req/min, burst 300
+	limiter := gcra.NewLimiter(mock)
+	limit := gcra.PerMinute(60, 300) // 60 req/min, burst 300
 
 	res, _ := limiter.AllowN("account:99", limit, 3)
 
@@ -61,14 +61,13 @@ func ExampleLimiter_AllowN() {
 	// second: allowed=300 remaining=0 retry_after=none reset_after=300.0s
 }
 
-// Reset shows removing rate limit state for a key.
-// example is just to show the behaviour, integrated with fake clock and client
-// check cmd/ for real Redis usage.
 func ExampleLimiter_Reset() {
+	// example is just to show the behaviour, integrated with fake clock and client
+	// ; check cmd/ for real Redis usage.
 	clock := newTestTime(time.Unix(0, 0))
 	mock := newMockClient(clock)
-	limiter := NewLimiter(mock)
-	limit := PerSecond(1, 1) // 1 req/sec, burst 1
+	limiter := gcra.NewLimiter(mock)
+	limit := gcra.PerSecond(1, 1) // 1 req/sec, burst 1
 
 	limited, _ := limiter.Allow("session:1", limit) // allowed on first call
 	stateBefore, _ := limiter.Peek("session:1")

@@ -1,4 +1,4 @@
-package leakybucketgcra
+package leakybucketgcra_test
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mediocregopher/radix/v3"
+	gcra "github.com/sagarsuperuser/leaky-bucket-gcra"
 )
 
 // testTime is a fake time used for testing.
@@ -149,13 +150,13 @@ func (m *mockClient) EvalScript(rcv interface{}, script string, keys []string, a
 	return nil
 }
 
-func (m *mockClient) PipeAppend(pipeline Pipeline, rcv interface{}, cmd, key string, args ...interface{}) Pipeline {
+func (m *mockClient) PipeAppend(pipeline gcra.Pipeline, rcv interface{}, cmd, key string, args ...interface{}) gcra.Pipeline {
 	return append(pipeline, radix.FlatCmd(rcv, cmd, key, args...))
 }
 
-func (m *mockClient) PipeDo(pipeline Pipeline) error { return nil }
-func (m *mockClient) Close() error                   { return nil }
-func (m *mockClient) NumActiveConns() int            { return 0 }
+func (m *mockClient) PipeDo(pipeline gcra.Pipeline) error { return nil }
+func (m *mockClient) Close() error                        { return nil }
+func (m *mockClient) NumActiveConns() int                 { return 0 }
 func (m *mockClient) ImplicitPipeliningEnabled() bool {
 	return false
 }
