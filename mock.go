@@ -62,7 +62,7 @@ func (tt *testTime) since(t time.Time) time.Duration {
 }
 
 // advance advances the fake time.
-func (tt *testTime) advance(dur time.Duration) {
+func (tt *testTime) Advance(dur time.Duration) {
 	tt.mu.Lock()
 	defer tt.mu.Unlock()
 	tt.advanceUnlocked(dur)

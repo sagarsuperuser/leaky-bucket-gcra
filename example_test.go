@@ -15,17 +15,17 @@ func ExampleLimiter_Allow() {
 	res1, _ := limiter.Allow("user:42", limit)
 	res2, _ := limiter.Allow("user:42", limit)
 	res3, _ := limiter.Allow("user:42", limit)
-	clock.advance(500 * time.Millisecond) // wait long enough for one token to replenish
+	clock.Advance(500 * time.Millisecond) // wait long enough for one token to replenish
 	res4, _ := limiter.Allow("user:42", limit)
 
 	fmt.Printf("first: allowed=%d remaining=%d retry_after=%s reset_after=%s\n",
-		res1.Allowed, res1.Remaining, formatDur(res1.RetryAfter), formatDur(res1.ResetAfter))
+		res1.Allowed, res1.Remaining, FormatDur(res1.RetryAfter), FormatDur(res1.ResetAfter))
 	fmt.Printf("second: allowed=%d remaining=%d retry_after=%s reset_after=%s\n",
-		res2.Allowed, res2.Remaining, formatDur(res2.RetryAfter), formatDur(res2.ResetAfter))
+		res2.Allowed, res2.Remaining, FormatDur(res2.RetryAfter), FormatDur(res2.ResetAfter))
 	fmt.Printf("third: allowed=%d remaining=%d retry_after=%s reset_after=%s\n",
-		res3.Allowed, res3.Remaining, formatDur(res3.RetryAfter), formatDur(res3.ResetAfter))
+		res3.Allowed, res3.Remaining, FormatDur(res3.RetryAfter), FormatDur(res3.ResetAfter))
 	fmt.Printf("after wait: allowed=%d remaining=%d retry_after=%s reset_after=%s\n",
-		res4.Allowed, res4.Remaining, formatDur(res4.RetryAfter), formatDur(res4.ResetAfter))
+		res4.Allowed, res4.Remaining, FormatDur(res4.RetryAfter), FormatDur(res4.ResetAfter))
 
 	// Output:
 	// first: allowed=1 remaining=1 retry_after=none reset_after=0.5s
@@ -43,14 +43,14 @@ func ExampleLimiter_AllowN() {
 
 	res, _ := limiter.AllowN("account:99", limit, 3)
 
-	clock.advance(3 * time.Second) // advance enough to replenish burst again
+	clock.Advance(3 * time.Second) // advance enough to replenish burst again
 
 	res1, _ := limiter.AllowN("account:99", limit, 300)
 
 	fmt.Printf("first: allowed=%d remaining=%d retry_after=%s reset_after=%s\n",
-		res.Allowed, res.Remaining, formatDur(res.RetryAfter), formatDur(res.ResetAfter))
+		res.Allowed, res.Remaining, FormatDur(res.RetryAfter), FormatDur(res.ResetAfter))
 	fmt.Printf("second: allowed=%d remaining=%d retry_after=%s reset_after=%s\n",
-		res1.Allowed, res1.Remaining, formatDur(res1.RetryAfter), formatDur(res1.ResetAfter))
+		res1.Allowed, res1.Remaining, FormatDur(res1.RetryAfter), FormatDur(res1.ResetAfter))
 
 	// Output:
 	// first: allowed=3 remaining=297 retry_after=none reset_after=3.0s
@@ -70,8 +70,8 @@ func ExampleLimiter_Reset() {
 	stateAfter, _ := limiter.Peek("session:1")
 
 	fmt.Printf("before reset allowed=%d remaining=%d\n", limited.Allowed, limited.Remaining)
-	fmt.Printf("state before reset=%s\n", formatDur(stateBefore))
-	fmt.Printf("state after reset=%s\n", formatDur(stateAfter))
+	fmt.Printf("state before reset=%s\n", FormatDur(stateBefore))
+	fmt.Printf("state after reset=%s\n", FormatDur(stateAfter))
 
 	// Output:
 	// before reset allowed=1 remaining=0
@@ -79,7 +79,7 @@ func ExampleLimiter_Reset() {
 	// state after reset=none
 }
 
-func formatDur(d *time.Duration) string {
+func FormatDur(d *time.Duration) string {
 	if d == nil {
 		return "none"
 	}
