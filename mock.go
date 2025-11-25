@@ -26,14 +26,14 @@ type testTimer struct {
 }
 
 // now returns the current fake time.
-func (tt *testTime) Now() time.Time {
+func (tt *testTime) now() time.Time {
 	tt.mu.Lock()
 	defer tt.mu.Unlock()
 	return tt.cur
 }
 
 // Unix returns seconds elapsed since the fake clock start.
-func (tt *testTime) Unix() float64 {
+func (tt *testTime) unix() float64 {
 	tt.mu.Lock()
 	defer tt.mu.Unlock()
 	return tt.cur.Sub(tt.start).Seconds()
@@ -62,7 +62,7 @@ func (tt *testTime) since(t time.Time) time.Duration {
 }
 
 // advance advances the fake time.
-func (tt *testTime) Advance(dur time.Duration) {
+func (tt *testTime) advance(dur time.Duration) {
 	tt.mu.Lock()
 	defer tt.mu.Unlock()
 	tt.advanceUnlocked(dur)
@@ -100,12 +100,12 @@ func (tt *testTime) advanceToTimer() {
 }
 
 // newTestTime builds a fake clock starting at start.
-func NewTestTime(start time.Time) *testTime {
+func newTestTime(start time.Time) *testTime {
 	return &testTime{cur: start, start: start}
 }
 
 // newMockClient implements the Client interface entirely in-memory for examples.
-func NewMockClient(clock *testTime) *mockClient {
+func newMockClient(clock *testTime) *mockClient {
 	return &mockClient{
 		store: make(map[string]float64),
 		clock: clock,
@@ -189,7 +189,7 @@ func (m *mockClient) eval(key string, args ...interface{}) ([]interface{}, error
 	emissionInterval := period / rate
 	increment := emissionInterval * cost
 	burstOffset := emissionInterval * burst
-	now := m.clock.Unix()
+	now := m.clock.unix()
 
 	tat := now
 	if prev, ok := m.store[key]; ok {

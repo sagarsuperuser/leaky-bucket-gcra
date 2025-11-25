@@ -6,16 +6,18 @@ import (
 )
 
 // Allow shows basic usage of the Limiter's Allow method.
+// example is just to show the behaviour, integrated with fake clock and client
+// ; check cmd/ for real Redis usage.
 func ExampleLimiter_Allow() {
-	clock := NewTestTime(time.Unix(0, 0))
-	mock := NewMockClient(clock)
+	clock := newTestTime(time.Unix(0, 0))
+	mock := newMockClient(clock)
 	limiter := NewLimiter(mock)
 	limit := PerSecond(2, 2) // 2 req/sec, burst 2
 
 	res1, _ := limiter.Allow("user:42", limit)
 	res2, _ := limiter.Allow("user:42", limit)
 	res3, _ := limiter.Allow("user:42", limit)
-	clock.Advance(500 * time.Millisecond) // wait long enough for one token to replenish
+	clock.advance(500 * time.Millisecond) // wait long enough for one token to replenish
 	res4, _ := limiter.Allow("user:42", limit)
 
 	fmt.Printf("first: allowed=%d remaining=%d retry_after=%s reset_after=%s\n",
@@ -35,15 +37,17 @@ func ExampleLimiter_Allow() {
 }
 
 // AllowN shows usage of the Limiter's AllowN method.
+// example is just to show the behaviour, integrated with fake clock and client
+// check cmd/ for real Redis usage.
 func ExampleLimiter_AllowN() {
-	clock := NewTestTime(time.Unix(0, 0))
-	mock := NewMockClient(clock)
+	clock := newTestTime(time.Unix(0, 0))
+	mock := newMockClient(clock)
 	limiter := NewLimiter(mock)
 	limit := PerMinute(60, 300) // 60 req/min, burst 300
 
 	res, _ := limiter.AllowN("account:99", limit, 3)
 
-	clock.Advance(3 * time.Second) // advance enough to replenish burst again
+	clock.advance(3 * time.Second) // advance enough to replenish burst again
 
 	res1, _ := limiter.AllowN("account:99", limit, 300)
 
@@ -58,9 +62,11 @@ func ExampleLimiter_AllowN() {
 }
 
 // Reset shows removing rate limit state for a key.
+// example is just to show the behaviour, integrated with fake clock and client
+// check cmd/ for real Redis usage.
 func ExampleLimiter_Reset() {
-	clock := NewTestTime(time.Unix(0, 0))
-	mock := NewMockClient(clock)
+	clock := newTestTime(time.Unix(0, 0))
+	mock := newMockClient(clock)
 	limiter := NewLimiter(mock)
 	limit := PerSecond(1, 1) // 1 req/sec, burst 1
 
