@@ -1,6 +1,6 @@
 module github.com/sagarsuperuser/leaky-bucket-gcra
 
-go 1.22
+go 1.25
 
 require (
 	github.com/mediocregopher/radix/v3 v3.8.1
