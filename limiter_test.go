@@ -137,8 +137,8 @@ func TestLongRunningQPS(t *testing.T) {
 		t.Errorf("numOK = %d, want <= %d (ideal %f)", numOK, want, ideal)
 	}
 
-	// We should get at least 99.7% of the ideal number of requests.
-	if want := int32(0.997 * ideal); numOK < want {
+	// We should get at least 99.9% of the ideal number of requests.
+	if want := int32(0.999 * ideal); numOK < want {
 		t.Errorf("numOK = %d, want >= %d (ideal %f)", numOK, want, ideal)
 	}
 }

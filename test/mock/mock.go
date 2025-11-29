@@ -197,13 +197,12 @@ func (m *mockClient) eval(key string, args ...interface{}) ([]interface{}, error
 	allowAt := newTAT - burstOffset
 	diff := now - allowAt
 
-	remaining := math.Floor(diff/emissionInterval + 0.5)
-
 	var allowed int64
 	var retryAfter float64
 	var resetAfter float64
+	var remaining float64
 
-	if remaining < 0 {
+	if diff < 0 {
 		allowed = 0
 		remaining = 0
 		resetAfter = tat - now
@@ -213,6 +212,7 @@ func (m *mockClient) eval(key string, args ...interface{}) ([]interface{}, error
 		}
 	} else {
 		allowed = int64(cost)
+		remaining = math.Floor(diff/emissionInterval + 0.5)
 		resetAfter = newTAT - now
 		m.store[key] = newTAT
 		retryAfter = -1

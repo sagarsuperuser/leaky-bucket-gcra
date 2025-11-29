@@ -41,19 +41,16 @@ local diff = now - allow_at
 local allowed
 local retry_after
 local reset_after
+local remaining
 
-local remaining = math.floor(diff / emission_interval + 0.5)
-
-if remaining < 0 then
+if diff < 0 then
   allowed = 0
   remaining = 0
   reset_after = tat - now
   retry_after = diff * -1
-  if retry_after > burst then
-    retry_after = -1
-  end
 else
   allowed = cost
+  remaining = math.floor(diff / emission_interval + 0.5)
   reset_after = new_tat - now
   redis.call("SET", rate_limit_key, new_tat, "EX", math.ceil(reset_after))
   retry_after = -1
